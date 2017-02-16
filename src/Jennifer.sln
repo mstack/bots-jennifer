@@ -1,0 +1,45 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26020.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "README", "README", "{279E48A0-6E78-4007-96B3-B018169997BE}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mStack.API.Bots", "mStack.API.Bots\mStack.API.Bots.csproj", "{89E946BD-FD36-48C1-A23F-43AB7ABC1FD8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mStack.API.Bots.Jennifer.Host", "mStack.API.Bots.Jennifer.Host\mStack.API.Bots.Jennifer.Host.csproj", "{A8BA1066-5695-4D71-ABB4-65E5A5E0C3D4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mStack.API.Common", "..\..\company-apis\src\mStack.API.Common\mStack.API.Common.csproj", "{B69E89F2-A3E4-4A0F-9509-AFDC26790A5C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mStack.API.REST", "..\..\company-apis\src\mStack.API.REST\mStack.API.REST.csproj", "{EC1C30A9-7EE3-4466-BCF6-105CB9B84E1E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{89E946BD-FD36-48C1-A23F-43AB7ABC1FD8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89E946BD-FD36-48C1-A23F-43AB7ABC1FD8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89E946BD-FD36-48C1-A23F-43AB7ABC1FD8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89E946BD-FD36-48C1-A23F-43AB7ABC1FD8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A8BA1066-5695-4D71-ABB4-65E5A5E0C3D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8BA1066-5695-4D71-ABB4-65E5A5E0C3D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8BA1066-5695-4D71-ABB4-65E5A5E0C3D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8BA1066-5695-4D71-ABB4-65E5A5E0C3D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B69E89F2-A3E4-4A0F-9509-AFDC26790A5C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B69E89F2-A3E4-4A0F-9509-AFDC26790A5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B69E89F2-A3E4-4A0F-9509-AFDC26790A5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B69E89F2-A3E4-4A0F-9509-AFDC26790A5C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC1C30A9-7EE3-4466-BCF6-105CB9B84E1E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC1C30A9-7EE3-4466-BCF6-105CB9B84E1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC1C30A9-7EE3-4466-BCF6-105CB9B84E1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC1C30A9-7EE3-4466-BCF6-105CB9B84E1E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
