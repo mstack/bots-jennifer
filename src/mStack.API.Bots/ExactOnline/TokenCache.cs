@@ -1,4 +1,5 @@
 ﻿using mStack.API.Bots.Auth;
+using mStack.API.Common.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,7 +26,7 @@ namespace mStack.API.Bots.ExactOnline
 
         public byte[] Serialize()
         {
-            return AuthUtilities.ObjectToByteArray(this);
+            return SerializationUtilities.ObjectToByteArray(this);
         }
     }
 }

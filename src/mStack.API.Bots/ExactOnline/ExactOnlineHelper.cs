@@ -69,9 +69,10 @@ namespace mStack.API.Bots.ExactOnline
                 UserName = userInfo.FullName,
                 UserUniqueId = userInfo.UserID
             };
-
+           
             var tokenCache = TokenCacheFactory.GetTokenCache();
             tokenCache.CacheToken(oauthToken);
+            
             var result = ConvertAuthenticationResult(oauthToken, tokenCache);
 
             return Task.FromResult<Auth.AuthenticationResult>(result);

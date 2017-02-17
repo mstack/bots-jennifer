@@ -177,10 +177,9 @@
     <Compile Include="ExactOnline\Dialogs\TimeRegistrationDialog.cs" />
     <Compile Include="ExactOnline\ExactOnlineAuthDialog.cs" />
     <Compile Include="ExactOnline\ExactOnlineModule.cs" />
-    <Compile Include="ExactOnline\HoursReminder\HoursReminderEngine.cs" />
-    <Compile Include="ExactOnline\HoursReminder\HoursReminderModule.cs" />
+    <Compile Include="ExactOnline\HoursReminder\HoursReminderService.cs" />
     <Compile Include="ExactOnline\HoursReminder\HoursReminderStore.cs" />
-    <Compile Include="ExactOnline\HoursReminder\IHoursReminderEngine.cs" />
+    <Compile Include="ExactOnline\HoursReminder\IHoursReminderService.cs" />
     <Compile Include="ExactOnline\HoursReminder\IHoursReminderStore.cs" />
     <Compile Include="ExactOnline\OAuthToken.cs" />
     <Compile Include="ExactOnline\ExactOnlineHelper.cs" />

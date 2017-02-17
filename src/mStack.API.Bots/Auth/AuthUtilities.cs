@@ -39,29 +39,5 @@ namespace mStack.API.Bots.Auth
                 .ToArray();
             return "?" + string.Join("&", array);
         }
-
-        public static byte[] ObjectToByteArray(object obj)
-        {
-            if (obj == null)
-                return null;
-            BinaryFormatter bf = new BinaryFormatter();
-            using (MemoryStream ms = new MemoryStream())
-            {
-                bf.Serialize(ms, obj);
-                return ms.ToArray();
-            }
-        }
-
-        public static T ByteArrayToObject<T>(byte[] array)
-        {
-            if (array == null || array.Length == 0)
-                return default(T);
-
-            BinaryFormatter bf = new BinaryFormatter();
-            using (MemoryStream ms = new MemoryStream(array))
-            {
-                return (T)bf.Deserialize(ms);
-            }
-        }
     }
 }

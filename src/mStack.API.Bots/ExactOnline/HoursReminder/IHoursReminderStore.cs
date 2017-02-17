@@ -10,5 +10,7 @@ namespace mStack.API.Bots.ExactOnline.HoursReminder
     {
         void AddReminder(HoursReminderModel model);
         IEnumerable<HoursReminderModel> GetReminders();
+        void DeleteReminder(string username);
+        HoursReminderModel GetReminder(string username);
     }
 }

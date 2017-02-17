@@ -15,16 +15,18 @@ namespace mStack.API.Bots.ExactOnline.Dialogs
     [Serializable]
     public class HoursReminderDialog : IDialog<object>
     {
-        private readonly IHoursReminderEngine _engine;
+        private string _text;
+        private readonly IHoursReminderService _engine;
 
-        public HoursReminderDialog(IHoursReminderEngine engine)
+        public HoursReminderDialog(string replyText, IHoursReminderService engine)
         {
+            _text = replyText;
             SetField.NotNull(out this._engine, nameof(engine), engine);
         }
 
         async Task IDialog<object>.StartAsync(IDialogContext context)
         {
-            await context.PostAsync($"Hey! Did you remember to book your hours?");
+            await context.PostAsync(_text);
             context.Done<object>(null);
             //PromptDialog.Confirm(context, AfterPromptForSnoozing, "Do you want to snooze this alarm?");
         }

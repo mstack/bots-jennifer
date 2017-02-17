@@ -4,9 +4,12 @@
     using Autofac.Integration.WebApi;
     using Microsoft.Bot.Builder.Dialogs;
     using Microsoft.Bot.Builder.Dialogs.Internals;
+    using Microsoft.Bot.Builder.Luis;
     using Microsoft.Bot.Connector;
     using mStack.API.Bots.ExactOnline.HoursReminder;
+    using mStack.API.Bots.Jennifer;
     using System.Reflection;
+    using System.Web.Configuration;
     using System.Web.Http;
 
     public class WebApiApplication : System.Web.HttpApplication
@@ -20,8 +23,13 @@
         private void RegisterBotDependencies()
         {
             var builder = new ContainerBuilder();
+            
+            // register the required modules
+            builder.RegisterModule(new DialogModule());
+            builder.RegisterModule(new JenniferModule());
 
-            builder.RegisterModule(new HoursReminderModule());
+            // register other dialogs we use
+            //builder.Register((c, p) => new AlarmRingDialog(p.TypedAs<string>(), c.Resolve<IAlarmService>(), c.Resolve<IAlarmRenderer>())).AsSelf().InstancePerDependency();
 
             // Get your HttpConfiguration.
             var config = GlobalConfiguration.Configuration;

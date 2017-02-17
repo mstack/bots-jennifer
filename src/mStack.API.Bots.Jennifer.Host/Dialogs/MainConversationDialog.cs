@@ -23,6 +23,7 @@ using mStack.API.Bots.SharePoint.Dialogs;
 using mStack.API.Common.Utilities;
 using mStack.API.REST.ExactOnlineConnect;
 using mStack.API.Bots.Auth;
+using mStack.API.Bots.ExactOnline.HoursReminder;
 
 namespace mStack.API.Bots.Jennifer
 {
@@ -30,11 +31,12 @@ namespace mStack.API.Bots.Jennifer
     [Serializable]
     public class MainConversationDialog : LuisDialog<string>
     {
-        static string _resourceUriSharePoint = WebConfigurationManager.AppSettings["SP_TENANT_URL"];
+        private static readonly string _resourceUriSharePoint = WebConfigurationManager.AppSettings["SP_TENANT_URL"];
+        private readonly IHoursReminderService _hoursReminderService;
 
-        public MainConversationDialog() : base(new LuisService(new LuisModelAttribute(WebConfigurationManager.AppSettings["LuisAppId"], WebConfigurationManager.AppSettings["LuisAPIKey"])))
+        public MainConversationDialog(IHoursReminderService hoursReminderService) : base(new LuisService(new LuisModelAttribute(WebConfigurationManager.AppSettings["LuisAppId"], WebConfigurationManager.AppSettings["LuisAPIKey"])))
         {
-
+            _hoursReminderService = hoursReminderService;
         }
 
         [LuisIntent("Welcome")]
@@ -64,12 +66,30 @@ namespace mStack.API.Bots.Jennifer
             context.Wait(MessageReceived);
         }
 
+        [LuisIntent("ClearData")]
+        public async Task ClearData(IDialogContext context, LuisResult result)
+        {
+            context.ConversationData.Clear();
+            context.UserData.Clear();
+            await context.FlushAsync(CancellationToken.None);
+            await context.PostAsync($"OK. I've deleted all data I had of you. It's true.");
+
+            context.Wait(MessageReceived);
+        }
+
+        [LuisIntent("StopHoursReminder")]
+        public async Task StopHoursReminder(IDialogContext context, LuisResult result)
+        {
+            await _hoursReminderService.RemoveReminder(context);
+        }
+
         [LuisIntent("SetHoursReminder")]
         public async Task SetHoursReminder(IDialogContext context, IAwaitable<IMessageActivity> activity, LuisResult result)
         {
             if (await VerifyExactOnlineAuthorization(context, activity, _resourceUriSharePoint))
             {
-                await context.PostAsync($"Sorry to hear about that. Let me check some things.");
+                await _hoursReminderService.SetReminder(context);
+                context.Wait(MessageReceived);
             }
         }
 

@@ -1,4 +1,5 @@
 ﻿using mStack.API.Bots.Auth;
+using mStack.API.Common.Utilities;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens;
@@ -16,7 +17,7 @@ namespace mStack.API.Bots.ExactOnline
 
         public static TokenCache SetTokenCache(byte[] tokenCache)
         {
-            _tokenCache = AuthUtilities.ByteArrayToObject<TokenCache>(tokenCache);
+            _tokenCache = SerializationUtilities.ByteArrayToObject<TokenCache>(tokenCache);
             return _tokenCache;
         }
 

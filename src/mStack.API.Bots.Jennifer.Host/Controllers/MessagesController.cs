@@ -11,10 +11,22 @@
     using Microsoft.Bot.Builder.Dialogs;
     using Microsoft.Bot.Connector;
     using mStack.API.Bots.Jennifer;
+    using Autofac;
+    using Microsoft.Bot.Builder.Internals.Fibers;
+    using System.Threading;
+    using Microsoft.Bot.Builder.Dialogs.Internals;
+    using mStack.API.Bots.ExactOnline.HoursReminder;
 
     [BotAuthentication]
     public class MessagesController : ApiController
     {
+        private readonly ILifetimeScope scope;
+
+        public MessagesController(ILifetimeScope scope)
+        {
+            SetField.NotNull(out this.scope, nameof(scope), scope);
+        }
+           
         /// <summary>
         /// POST: api/Messages
         /// Receive a message from a user and reply to it
@@ -23,7 +35,10 @@
         {
             if (activity.Type == ActivityTypes.Message)
             {
-                await Conversation.SendAsync(activity, () => new MainConversationDialog());
+                using (var scope = DialogModule.BeginLifetimeScope(this.scope, activity))
+                {
+                    await Conversation.SendAsync(activity, () => scope.Resolve<IDialog<object>>());
+                }
             }
             else
             {
