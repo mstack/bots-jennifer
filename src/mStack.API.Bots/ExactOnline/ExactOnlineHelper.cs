@@ -21,10 +21,9 @@ namespace mStack.API.Bots.ExactOnline
     {
         private static ExactOnlineClient _client;
 
-        public static async Task<AuthenticationResult> GetToken(string uniqueUserId)
+        public static async Task<AuthenticationResult> GetToken(string uniqueUserId = "")
         {
             // TODO: need to ensure that the unique user id part is included in the token cache
-
             var tokenCache = TokenCacheFactory.GetTokenCache();
             OAuthToken token = tokenCache.GetToken();
 

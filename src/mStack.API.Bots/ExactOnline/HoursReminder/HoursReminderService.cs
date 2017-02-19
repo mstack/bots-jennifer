@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web.Configuration;
 
 namespace mStack.API.Bots.ExactOnline.HoursReminder
 {
@@ -41,8 +42,8 @@ namespace mStack.API.Bots.ExactOnline.HoursReminder
             // then send the user a message as a reminder
             foreach (HoursReminderModel reminder in reminders)
             {
-                var tokenCache = reminder.GetTokenCache();
-                var authToken = tokenCache.GetToken();
+                TokenCacheFactory.SetTokenCache(reminder.TokenCache);
+                var authToken = await ExactOnlineHelper.GetToken();
 
                 ResumptionCookie cookie = reminder.GetResumptionCookie();
 
@@ -66,29 +67,42 @@ namespace mStack.API.Bots.ExactOnline.HoursReminder
 
         private async Task SendReminder(ResumptionCookie cookie, string replyText, CancellationToken token)
         {
-            // use the resumption cookie to get a message to reply to
-            var message = cookie.GetMessage();
-            var reminderReply = message.CreateReply();
-            reminderReply.Text = replyText;
+            var appCredentials = new MicrosoftAppCredentials();
+            var botAuthToken = await appCredentials.GetTokenAsync(true);
+            var connector = new ConnectorClient(new Uri(cookie.Address.ServiceUrl), appCredentials);
 
-            // create ConnectorClient instance with the message details and reply to the user
-            var client = new ConnectorClient(new Uri(message.ServiceUrl));
-            await client.Conversations.ReplyToActivityAsync(reminderReply);            
+            var userAccount = new ChannelAccount(cookie.Address.UserId);
+            var botAccount = new ChannelAccount(cookie.Address.BotId);
+
+            Activity activity = cookie.GetMessage();
+
+            // need to trust the service URL because otherwise the bot connector authentication will fail
+            MicrosoftAppCredentials.TrustServiceUrl(cookie.Address.ServiceUrl);
+
+            // construct the reply to send back to the user
+            IMessageActivity messageToSend = Activity.CreateMessageActivity();
+            messageToSend.ChannelId = cookie.Address.ChannelId;
+            messageToSend.From = botAccount;
+            messageToSend.Recipient = userAccount;
+            messageToSend.Conversation = new ConversationAccount(id: cookie.Address.ConversationId);
+            messageToSend.Text = replyText;
+            messageToSend.Locale = "en-Us";
+            messageToSend.ServiceUrl = cookie.Address.ServiceUrl;
+
+            await connector.Conversations.SendToConversationAsync((Activity)messageToSend);
         }
 
-        private async Task<double?> GetBookedHours(OAuthToken authToken)
+        private async Task<double?> GetBookedHours(AuthenticationResult authenticationResult)
         {
             try
             {
-                AuthenticationResult authenticationResult = await ExactOnlineHelper.GetToken(authToken.UserUniqueId);
-
-                ExactOnlineConnector connector = new ExactOnlineConnector(authToken.AccessToken);
+                ExactOnlineConnector connector = new ExactOnlineConnector(authenticationResult.AccessToken);
 
                 DateTime startDate, endDate;
                 DateTimeUtils.GetThisWeek(DateTime.Now, out startDate, out endDate);
 
                 TimeRegistrationConnector timeConnector = new TimeRegistrationConnector();
-                double bookedHours = timeConnector.GetBookedHours(connector.EmployeeId, startDate, endDate, connector);
+                double bookedHours = await timeConnector.GetBookedHours(connector.EmployeeId, startDate, endDate, connector);
 
                 return bookedHours;
             }

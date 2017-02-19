@@ -24,6 +24,7 @@ using mStack.API.Common.Utilities;
 using mStack.API.REST.ExactOnlineConnect;
 using mStack.API.Bots.Auth;
 using mStack.API.Bots.ExactOnline.HoursReminder;
+using System.Text.RegularExpressions;
 
 namespace mStack.API.Bots.Jennifer
 {
@@ -119,7 +120,7 @@ namespace mStack.API.Bots.Jennifer
                 ExactOnlineConnector eolConnector = ExactOnlineHelper.GetConnector();
                 TimeRegistrationConnector connector = new TimeRegistrationConnector();
 
-                double bookedHours = connector.GetBookedHours(eolConnector.EmployeeId, startDate, endDate, eolConnector);
+                double bookedHours = await connector.GetBookedHours(eolConnector.EmployeeId, startDate, endDate, eolConnector);
                 await context.PostAsync($"For {weekString} I found {bookedHours} hours booked.");
 
                 context.Wait(MessageReceived);
@@ -143,7 +144,7 @@ namespace mStack.API.Bots.Jennifer
 
                 if (message.Text.ToLower().Contains("this week"))
                 {
-                    entities.Add(new EntityRecommendation(type: "ThisWeek") { Entity = "yes" });
+                    entities.Add(new EntityRecommendation(type: nameof(TimeRegistrationModel.ThisWeek)) { Entity = "yes" });
                 }
                 else if (dates.Count() >= 1)
                 {
@@ -157,7 +158,22 @@ namespace mStack.API.Bots.Jennifer
                         int day = actual.Day.Value != -1 ? actual.Day.Value : DateTime.Now.Day;
 
                         DateTime startTime = new DateTime(year, month, day);
-                        entities.Add(new EntityRecommendation(type: "Date") { Entity = startTime.ToString() });
+                        entities.Add(new EntityRecommendation(type: nameof(TimeRegistrationModel.Date)) { Entity = startTime.ToString() });
+                        entities.Add(new EntityRecommendation(type: nameof(TimeRegistrationModel.ThisWeek)) { Entity = "no" });
+                    }
+                }
+
+                var numberEntities = result.Entities.Where(e => e.Type == "builtin.datetime.duration");
+                if (numberEntities.Count() == 1)
+                {
+                    var resolution = numberEntities.First().Resolution;
+                    string durationString = resolution["duration"];
+
+                    Match regexMatch = Regex.Match(durationString, "PT(\\d)H");
+                    if (regexMatch.Success)
+                    {
+                        string amount = regexMatch.Groups[1].Value;
+                        entities.Add(new EntityRecommendation(type: nameof(TimeRegistrationModel.Amount)) { Entity = amount });
                     }
                 }
 
