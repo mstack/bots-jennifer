@@ -16,6 +16,7 @@ namespace mStack.API.Bots.ExactOnline.HoursReminder
 
         public byte[] ResumptionCookie { get; set; }
         public byte[] TokenCache { get; set; }
+        public int? ContractHours { get; set; }
 
         public ResumptionCookie GetResumptionCookie()
         {
@@ -36,10 +37,11 @@ namespace mStack.API.Bots.ExactOnline.HoursReminder
         public HoursReminderModel()
         { }
 
-        public HoursReminderModel(string username, ResumptionCookie cookie, TokenCache tokenCache)
+        public HoursReminderModel(string username, ResumptionCookie cookie, int contractHours, TokenCache tokenCache)
         {
             this.ResumptionCookie = SerializationUtilities.ObjectToByteArray(cookie);
             this.TokenCache = tokenCache.Serialize();
+            this.ContractHours = contractHours;
 
             this.PartitionKey = _partitionKey;
             this.RowKey = username;

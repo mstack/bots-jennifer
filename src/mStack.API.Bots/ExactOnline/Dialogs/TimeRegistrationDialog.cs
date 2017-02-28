@@ -29,7 +29,7 @@ namespace mStack.API.Bots.ExactOnline.Dialogs
     public class TimeRegistrationModel
     {
         [Prompt("What is the customer?  {||}", ChoiceStyle = ChoiceStyleOptions.PerLine)]
-        [Describe("Please provide the customer name from Exact Online.")]
+        [Describe("The customer record from Exact Online.")]
         public string Customer { get; set; }
 
         [Prompt("Which project do you want to book on? {||}", ChoiceStyle = ChoiceStyleOptions.PerLine)]
@@ -37,15 +37,15 @@ namespace mStack.API.Bots.ExactOnline.Dialogs
         public string Project { get; set; }
 
         [Prompt("Which hour type?  {||}", ChoiceStyle = ChoiceStyleOptions.PerLine)]
-        [Describe("Please provide the hour type from Exact Online.")]
+        [Describe("The hours type from Exact Online.")]
         public string HourType { get; set; }
 
         [Prompt("For this week?")]
-        [Describe("When booking hours for the entire week, you can book per customer per day")]
+        [Describe("Pick No if you want to book for a specific date.")]
         public bool ThisWeek { get; set; }
 
         [Prompt("On which date? {||}", AllowDefault = BoolDefault.False)]
-        [Describe("Specify the date on which to book the hours. You can use 'today' or 'yesterday'.")]
+        [Describe("The date on which to book your hours. You can use 'today' or 'yesterday'.")]
         public DateTime Date { get; set; }
 
         [Prompt("Please specify your hours for each day, separated by spaces")]

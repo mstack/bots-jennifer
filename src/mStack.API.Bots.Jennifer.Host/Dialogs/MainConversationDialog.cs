@@ -93,9 +93,19 @@ namespace mStack.API.Bots.Jennifer
         {
             if (await VerifyExactOnlineAuthorization(context, activity, _resourceUriSharePoint))
             {
-                await _hoursReminderService.SetReminder(context);
-                context.Wait(MessageReceived);
+                //await _hoursReminderService.SetReminder(context);
+                //context.Wait(MessageReceived);
+
+                HoursReminderDialog dialog = new HoursReminderDialog(_hoursReminderService);
+
+                var hoursReminderDialog = new FormDialog<HoursReminderDialogModel>(new HoursReminderDialogModel(), dialog.BuildForm, FormOptions.PromptInStart);
+                context.Call(hoursReminderDialog, this.ResumeAfterReminder);
             }
+        }
+
+        private async Task ResumeAfterReminder(IDialogContext context, IAwaitable<HoursReminderDialogModel> result)
+        {
+            context.Wait(MessageReceived);
         }
 
         [LuisIntent("MissingHours")]

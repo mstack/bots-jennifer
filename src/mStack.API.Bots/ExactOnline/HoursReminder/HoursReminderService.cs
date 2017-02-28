@@ -48,7 +48,7 @@ namespace mStack.API.Bots.ExactOnline.HoursReminder
                 ResumptionCookie cookie = reminder.GetResumptionCookie();
 
                 double? bookedHours = await GetBookedHours(authToken);
-                double? contractHours = 40;     // TODO: need to get the contracted hours from somewhere
+                int contractHours = reminder.ContractHours ?? 40;     // TODO: need to get the contracted hours from somewhere
 
                 if (bookedHours == null)
                 {
@@ -110,7 +110,7 @@ namespace mStack.API.Bots.ExactOnline.HoursReminder
             }
         }
 
-        public async Task SetReminder(IDialogContext context)
+        public async Task SetReminder(IBotContext context, int contractHours)
         {
             string username = context.Activity.From.Name;
 
@@ -121,14 +121,14 @@ namespace mStack.API.Bots.ExactOnline.HoursReminder
             else
             {
                 TokenCache tokenCache = TokenCacheFactory.GetTokenCache();
-                HoursReminderModel model = new HoursReminderModel(username, _cookie, tokenCache);
+                HoursReminderModel model = new HoursReminderModel(username, _cookie, contractHours, tokenCache);
                 _store.AddReminder(model);
 
                 await context.PostAsync("Sure thing! I will remind you about booking your hours at the end of every week.");
             }
         }
          
-        public async Task RemoveReminder(IDialogContext context)
+        public async Task RemoveReminder(IBotContext context)
         {
             string username = context.Activity.From.Name;
 
