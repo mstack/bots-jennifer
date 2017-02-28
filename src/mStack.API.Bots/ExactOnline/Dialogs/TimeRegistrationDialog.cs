@@ -17,6 +17,10 @@ using Microsoft.Bot.Builder.FormFlow.Advanced;
 using mStack.API.REST.ExactOnlineConnect;
 using mStack.API.Bots.ExactOnline;
 using mStack.API.Common.Utilities;
+using Microsoft.Bot.Builder.Dialogs.Internals;
+using Autofac;
+using mStack.API.Bots.Cache;
+using ExactOnline.Client.Models;
 
 namespace mStack.API.Bots.ExactOnline.Dialogs
 {
@@ -57,8 +61,21 @@ namespace mStack.API.Bots.ExactOnline.Dialogs
     [Serializable]
     public class TimeRegistrationDialog
     {
+        private readonly string key_customers = "eol_recent_customers";
+        private readonly string key_projects = "eol_recent_projects";
+        private readonly string key_hours = "eol_recent_hours";
+        private readonly string key_hourTypes = "eol_recent_hourtypes";
 
-        public static IForm<TimeRegistrationModel> BuildForm()
+        private IBotCache _cacheService;
+        private string _userId;
+
+        public TimeRegistrationDialog(IBotCache cacheService, string userId)
+        {
+            this._cacheService = cacheService;
+            this._userId = userId;
+        }
+
+        public IForm<TimeRegistrationModel> BuildForm()
         {
             ExactOnlineConnector connector = ExactOnlineHelper.GetConnector();
 
@@ -121,7 +138,7 @@ namespace mStack.API.Bots.ExactOnline.Dialogs
             return Task.FromResult(result);
         }
 
-        private static FieldReflector<TimeRegistrationModel> BuildProjectField(ExactOnlineConnector connector)
+        private FieldReflector<TimeRegistrationModel> BuildProjectField(ExactOnlineConnector connector)
         {
             var reflector = new FieldReflector<TimeRegistrationModel>(nameof(TimeRegistrationModel.Project));
             reflector.SetType(null);
@@ -131,14 +148,28 @@ namespace mStack.API.Bots.ExactOnline.Dialogs
 
                 if (customerId != null)
                 {
-                    TimeRegistrationConnector timeConnector = new TimeRegistrationConnector();
-                    var recentProjects = timeConnector.GetRecentProjects(connector, customerId);
+                    var recentProjects = _cacheService.RetrieveForUser<RecentHours[]>(key_hours, _userId);
+
+                    if (recentProjects == null)
+                    {
+                        TimeRegistrationConnector timeConnector = new TimeRegistrationConnector();
+                        recentProjects = timeConnector.GetRecentProjects(connector, customerId).ToArray();
+
+                        _cacheService.CacheForUser(key_hours, recentProjects, _userId);
+                    }
 
                     foreach (var recentProject in recentProjects)
                     {
                         field
                             .AddDescription(recentProject.ProjectId.ToString(), recentProject.ProjectDescription)
                             .AddTerms(recentProject.ProjectId.ToString(), recentProject.ProjectDescription);
+                    }
+
+                    // if there's only one option to select; select it! 
+                    if (recentProjects.Length == 1)
+                    {
+                        state.Project = recentProjects.First().ProjectId.ToString();
+                        return Task.FromResult(false);
                     }
                 }
 
@@ -148,35 +179,50 @@ namespace mStack.API.Bots.ExactOnline.Dialogs
             return reflector;
         }
 
-        private static FieldReflector<TimeRegistrationModel> BuildHourTypeField(ExactOnlineConnector connector)
+        private FieldReflector<TimeRegistrationModel> BuildHourTypeField(ExactOnlineConnector connector)
         {
             var reflector = new FieldReflector<TimeRegistrationModel>(nameof(TimeRegistrationModel.HourType));
             reflector.SetType(null);
             reflector.SetDefine((state, field) =>
             {
-                TimeRegistrationConnector timeConnector = new TimeRegistrationConnector();
-                var recentAccounts = timeConnector.GetRecentHourCostTypes(connector);
+                var recentHourTypes = _cacheService.RetrieveForUser<TimeAndBillingRecentHourCostType[]>(key_hourTypes, _userId);
 
-                foreach (var recentAccount in recentAccounts)
+                if (recentHourTypes == null)
+                {
+                    TimeRegistrationConnector timeConnector = new TimeRegistrationConnector();
+                    recentHourTypes = timeConnector.GetRecentHourCostTypes(connector).ToArray();
+
+                    _cacheService.CacheForUser(key_hourTypes, recentHourTypes, _userId);
+                }
+
+                foreach (var recentHourType in recentHourTypes)
                 {
                     field
-                    .AddDescription(recentAccount.ItemId.ToString(), recentAccount.ItemDescription)
-                    .AddTerms(recentAccount.ItemId.ToString(), recentAccount.ItemDescription);
+                    .AddDescription(recentHourType.ItemId.ToString(), recentHourType.ItemDescription)
+                    .AddTerms(recentHourType.ItemId.ToString(), recentHourType.ItemDescription);
                 }
+
                 return Task.FromResult(true);
             });
 
             return reflector;
         }
 
-        private static FieldReflector<TimeRegistrationModel> BuildCustomerField(ExactOnlineConnector connector)
+        private FieldReflector<TimeRegistrationModel> BuildCustomerField(ExactOnlineConnector connector)
         {
             var reflector = new FieldReflector<TimeRegistrationModel>(nameof(TimeRegistrationModel.Customer));
             reflector.SetType(null);
             reflector.SetDefine((state, field) =>
             {
-                TimeRegistrationConnector timeConnector = new TimeRegistrationConnector();
-                var recentAccounts = timeConnector.GetRecentAccounts(connector);
+                var recentAccounts = _cacheService.RetrieveForUser<TimeAndBillingRecentAccount[]>(key_customers, _userId);
+
+                if (recentAccounts == null)
+                {
+                    TimeRegistrationConnector timeConnector = new TimeRegistrationConnector();
+                    recentAccounts = timeConnector.GetRecentAccounts(connector).ToArray();
+
+                    _cacheService.CacheForUser(key_customers, recentAccounts, _userId);
+                }
 
                 foreach (var recentAccount in recentAccounts)
                 {
@@ -184,13 +230,14 @@ namespace mStack.API.Bots.ExactOnline.Dialogs
                     .AddDescription(recentAccount.AccountId.ToString(), recentAccount.AccountName)
                     .AddTerms(recentAccount.AccountId.ToString(), recentAccount.AccountName);
                 }
+
                 return Task.FromResult(true);
             });
 
             return reflector;
         }
 
-        private static async Task<TimeRegistrationModel> TimeRegistrationCompleted(IBotContext context, TimeRegistrationModel model)
+        private async Task<TimeRegistrationModel> TimeRegistrationCompleted(IBotContext context, TimeRegistrationModel model)
         {
             var message = "Booking your hours in Exact, just a sec...";
             await context.PostAsync(message);

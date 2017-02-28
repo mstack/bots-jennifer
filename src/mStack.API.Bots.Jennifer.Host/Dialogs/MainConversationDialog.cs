@@ -25,6 +25,7 @@ using mStack.API.REST.ExactOnlineConnect;
 using mStack.API.Bots.Auth;
 using mStack.API.Bots.ExactOnline.HoursReminder;
 using System.Text.RegularExpressions;
+using mStack.API.Bots.Cache;
 
 namespace mStack.API.Bots.Jennifer
 {
@@ -34,10 +35,12 @@ namespace mStack.API.Bots.Jennifer
     {
         private static readonly string _resourceUriSharePoint = WebConfigurationManager.AppSettings["SP_TENANT_URL"];
         private readonly IHoursReminderService _hoursReminderService;
+        private readonly IBotCache _botCache;
 
-        public MainConversationDialog(IHoursReminderService hoursReminderService) : base(new LuisService(new LuisModelAttribute(WebConfigurationManager.AppSettings["LuisAppId"], WebConfigurationManager.AppSettings["LuisAPIKey"])))
+        public MainConversationDialog(IHoursReminderService hoursReminderService, IBotCache botCache) : base(new LuisService(new LuisModelAttribute(WebConfigurationManager.AppSettings["LuisAppId"], WebConfigurationManager.AppSettings["LuisAPIKey"])))
         {
             _hoursReminderService = hoursReminderService;
+            _botCache = botCache;
         }
 
         [LuisIntent("Welcome")]
@@ -54,6 +57,7 @@ namespace mStack.API.Bots.Jennifer
             helptext.AppendLine(@"Here's a list of things you can ask me to do:");
             helptext.AppendLine(@"* Ask me to book your holiday request and I'll save it for you.");
             helptext.AppendLine(@"* Book your hours. For today, a specific date or this week in one go.");
+            helptext.AppendLine(@"* Ask me to remind you to book your hours. I'll send you a reminder at the end of each week and month.");
             helptext.AppendLine(@"* Register sick leave.");
 
             await context.PostAsync(helptext.ToString());
@@ -63,7 +67,7 @@ namespace mStack.API.Bots.Jennifer
         [LuisIntent("None")]
         public async Task NoneIntent(IDialogContext context, LuisResult result)
         {
-            await context.PostAsync($"Sorry, I didn't quite understand. Could you rephrase? You said: {result.Query}"); //
+            await context.PostAsync($"Sorry, I didn't quite understand. Could you rephrase? You said: {result.Query}");
             context.Wait(MessageReceived);
         }
 
@@ -179,7 +183,9 @@ namespace mStack.API.Bots.Jennifer
 
                 await context.PostAsync($"Hour booking... my second favorite thing to do.");
 
-                var timeRegistrationDialog = new FormDialog<TimeRegistrationModel>(new TimeRegistrationModel(), TimeRegistrationDialog.BuildForm, FormOptions.PromptInStart, entities);
+                TimeRegistrationDialog dialog = new TimeRegistrationDialog(_botCache, message.From.Id);
+
+                var timeRegistrationDialog = new FormDialog<TimeRegistrationModel>(new TimeRegistrationModel(), dialog.BuildForm, FormOptions.PromptInStart, entities);
                 context.Call(timeRegistrationDialog, this.ResumeAfterTimeRegistration);
             }
         }
@@ -286,10 +292,12 @@ namespace mStack.API.Bots.Jennifer
         {
             var message = await item;
             var token = await context.GetADALAccessToken(resource);
+
             if (string.IsNullOrEmpty(token))
             {
                 await context.PostAsync($"For that action I first need to authenticate you. Please use the card to login and then try again, thanks!");
                 await context.Forward(new AzureADAuthDialog(resource), this.ResumeAfterAuth, message, CancellationToken.None);
+
                 return false;
             }
             else

@@ -67,9 +67,7 @@ namespace mStack.API.Bots.ExactOnline.HoursReminder
 
         private async Task SendReminder(ResumptionCookie cookie, string replyText, CancellationToken token)
         {
-            var appCredentials = new MicrosoftAppCredentials();
-            var botAuthToken = await appCredentials.GetTokenAsync(true);
-            var connector = new ConnectorClient(new Uri(cookie.Address.ServiceUrl), appCredentials);
+            var connector = new ConnectorClient(new Uri(cookie.Address.ServiceUrl), new MicrosoftAppCredentials());
 
             var userAccount = new ChannelAccount(cookie.Address.UserId);
             var botAccount = new ChannelAccount(cookie.Address.BotId);
