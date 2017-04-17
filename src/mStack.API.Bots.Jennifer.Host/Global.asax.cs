@@ -6,6 +6,7 @@
     using Microsoft.Bot.Builder.Dialogs.Internals;
     using Microsoft.Bot.Builder.Luis;
     using Microsoft.Bot.Connector;
+    using mStack.API.Bots;
     using mStack.API.Bots.ExactOnline.HoursReminder;
     using mStack.API.Bots.Jennifer;
     using System.Reflection;
@@ -43,30 +44,10 @@
             // Set the dependency resolver to be Autofac.
             var container = builder.Build();
             config.DependencyResolver = new AutofacWebApiDependencyResolver(container);
-        }
 
-        //private void RegisterBotDependencies()
-        //{
-        //    var builder = new ContainerBuilder();
-
-        //    RedisStoreOptions redisOptions = new RedisStoreOptions()
-        //    {
-        //        Configuration = "localhost"
-        //    };
-
-        //    builder.Register(c => new RedisStore(redisOptions))
-        //       .As<RedisStore>()
-        //       .SingleInstance();
-
-        //    builder.Register(c => new CachingBotDataStore(c.Resolve<RedisStore>(),
-        //                                                  CachingBotDataStoreConsistencyPolicy.ETagBasedConsistency))
-        //        .As<IBotDataStore<BotData>>()
-        //        .AsSelf()
-        //        .InstancePerLifetimeScope();
-
-        //    builder.Update(Conversation.Container);
-
-        //    //DependencyResolver.SetResolver(new AutofacDependencyResolver(Conversation.Container));
-        //}
+            // Set the dependency resolver to be Autofac.
+            //builder.Update(Conversation.Container);
+            //config.DependencyResolver = new AutofacWebApiDependencyResolver(Conversation.Container);
+        }        
     }
 }

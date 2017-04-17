@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using mStack.API.Bots.ExactOnline.HoursReminder;
 using Microsoft.Bot.Builder.Internals.Fibers;
 using Microsoft.Bot.Builder.FormFlow;
+using Microsoft.Bot.Connector;
+using Microsoft.Bot.Builder.ConnectorEx;
 
 namespace mStack.API.Bots.ExactOnline.Dialogs
 {
@@ -46,36 +48,10 @@ namespace mStack.API.Bots.ExactOnline.Dialogs
 
         private async Task<HoursReminderDialogModel> SetHourReminder(IBotContext context, HoursReminderDialogModel model)
         {
-            await _engine.SetReminder(context, model.ContractHours);
+            ConversationReference conversation = context.Activity.ToConversationReference();
+            await _engine.SetReminder(context, model.ContractHours, conversation);
 
             return model;
         }
-
-            //async Task IDialog<HoursReminderModel>.StartAsync(IDialogContext context)
-            //{
-            //    await context.PostAsync(_text);
-            //    context.Done<object>(null);
-            //    //PromptDialog.Confirm(context, AfterPromptForSnoozing, "Do you want to snooze this alarm?");
-            //}
-
-            //public async Task AfterPromptForSnoozing(IDialogContext context, IAwaitable<bool> snooze)
-            //{
-            //    try
-            //    {
-            //        if (await snooze)
-            //        {
-            //            await this.service.SnoozeAsync(this.title);
-            //        }
-            //        else
-            //        {
-
-            //        }
-            //    }
-            //    catch (TooManyAttemptsException)
-            //    {
-            //    }
-
-            //    context.Done<object>(null);
-            //}
-        }
+    }
 }

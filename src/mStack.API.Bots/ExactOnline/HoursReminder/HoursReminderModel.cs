@@ -1,4 +1,6 @@
-﻿using Microsoft.Bot.Builder.Dialogs;
+﻿using Microsoft.Bot.Builder.ConnectorEx;
+using Microsoft.Bot.Builder.Dialogs;
+using Microsoft.Bot.Connector;
 using Microsoft.WindowsAzure.Storage.Table;
 using mStack.API.Common.Utilities;
 using System;
@@ -14,14 +16,14 @@ namespace mStack.API.Bots.ExactOnline.HoursReminder
         private static readonly string _partitionKey = "HourReminders";
         public static string StaticPartitionKey { get { return _partitionKey; } }
 
-        public byte[] ResumptionCookie { get; set; }
+        public string ConversationReference { get; set; }
         public byte[] TokenCache { get; set; }
         public int? ContractHours { get; set; }
 
-        public ResumptionCookie GetResumptionCookie()
+        public ConversationReference GetConversationReference()
         {
-            if (this.ResumptionCookie != null && this.ResumptionCookie.Length > 0)
-                return SerializationUtilities.ByteArrayToObject<ResumptionCookie>(this.ResumptionCookie);
+            if (this.ConversationReference != null && this.ConversationReference.Length > 0)
+                return Newtonsoft.Json.JsonConvert.DeserializeObject<ConversationReference>(this.ConversationReference);
             else
                 return null;
         }
@@ -37,14 +39,15 @@ namespace mStack.API.Bots.ExactOnline.HoursReminder
         public HoursReminderModel()
         { }
 
-        public HoursReminderModel(string username, ResumptionCookie cookie, int contractHours, TokenCache tokenCache)
+        public HoursReminderModel(string username, ConversationReference conversation, int contractHours, TokenCache tokenCache)
         {
-            this.ResumptionCookie = SerializationUtilities.ObjectToByteArray(cookie);
+            this.ConversationReference = Newtonsoft.Json.JsonConvert.SerializeObject(conversation);
             this.TokenCache = tokenCache.Serialize();
             this.ContractHours = contractHours;
 
             this.PartitionKey = _partitionKey;
             this.RowKey = username;
         }
+        
     }
 }

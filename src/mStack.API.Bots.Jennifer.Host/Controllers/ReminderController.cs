@@ -19,7 +19,7 @@ namespace mStack.API.Bots.Jennifer.Controllers
 
         public async Task<HttpResponseMessage> Get()
         {
-            HoursReminderService reminderService = new HoursReminderService(new HoursReminderStore());
+            IHoursReminderService reminderService = new HoursReminderService(new HoursReminderStore());
             await reminderService.ProcessReminders(CancellationToken.None);
 
             var response = Request.CreateResponse(HttpStatusCode.OK);

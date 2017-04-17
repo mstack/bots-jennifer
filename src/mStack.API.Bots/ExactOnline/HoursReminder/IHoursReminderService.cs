@@ -12,7 +12,7 @@ namespace mStack.API.Bots.ExactOnline.HoursReminder
     public interface IHoursReminderService
     {
         Task ProcessReminders(CancellationToken token);
-        Task SetReminder(IBotContext context, int contractHours);
+        Task SetReminder(IBotContext context, int contractHours, ConversationReference conversation);
         Task RemoveReminder(IBotContext context);
     }
 }
