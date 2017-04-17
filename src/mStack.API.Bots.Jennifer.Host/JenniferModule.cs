@@ -3,6 +3,7 @@ using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.Dialogs.Internals;
 using Microsoft.Bot.Builder.Internals.Fibers;
 using Microsoft.Bot.Builder.Luis;
+using Microsoft.Bot.Connector;
 using mStack.API.Bots.Cache;
 using mStack.API.Bots.ExactOnline.HoursReminder;
 using System;
@@ -33,9 +34,8 @@ namespace mStack.API.Bots.Jennifer
             builder.RegisterType<StrictEntityToType>().Keyed<IEntityToType>(FiberModule.Key_DoNotSerialize).AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<BotCache>().Keyed<IBotCache>(FiberModule.Key_DoNotSerialize).AsImplementedInterfaces().SingleInstance();
 
-            // Register classes depening on the incoming messages
-            builder.Register(c => new HoursReminderService(c.Resolve<IHoursReminderStore>(), c.Resolve<ResumptionCookie>())).Keyed<IHoursReminderService>(FiberModule.Key_DoNotSerialize).AsImplementedInterfaces().InstancePerMatchingLifetimeScope(DialogModule.LifetimeScopeTag);
-
+            // Register classes depending on the incoming messages
+            builder.Register(c => new HoursReminderService(c.Resolve<IHoursReminderStore>())).Keyed<IHoursReminderService>(FiberModule.Key_DoNotSerialize).AsImplementedInterfaces().InstancePerMatchingLifetimeScope(DialogModule.LifetimeScopeTag);
         }
     }
 }

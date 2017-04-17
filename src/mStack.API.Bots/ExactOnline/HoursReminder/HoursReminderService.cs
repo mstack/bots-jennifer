@@ -18,21 +18,26 @@ using System.Web.Configuration;
 namespace mStack.API.Bots.ExactOnline.HoursReminder
 {
     [Serializable]
-    public class HoursReminderService : IHoursReminderService
+    public sealed class HoursReminderService : IHoursReminderService
     {        
-        IHoursReminderStore _store;
-        ResumptionCookie _cookie;
+        private readonly IHoursReminderStore _store;
 
         public HoursReminderService(IHoursReminderStore store)
         {
-            SetField.NotNull(out this._store, nameof(store), store);
+            SetField.NotNull(out this._store, nameof(_store), store);
         }
 
-        public HoursReminderService(IHoursReminderStore store, ResumptionCookie cookie)
-        {
-            SetField.NotNull(out this._store, nameof(store), store);
-            SetField.NotNull(out this._cookie, nameof(cookie), cookie);
-        }
+        //public HoursReminderService(IHoursReminderStore store, ConversationReference conversation)
+        //{
+        //    SetField.NotNull(out this._store, nameof(_store), store);
+        //    SetField.NotNull(out this._conversation, nameof(_conversation), conversation);
+        //}
+
+        //public HoursReminderService(IHoursReminderStore store, ConversationReference conversation)
+        //{
+        //    SetField.NotNull(out this._store, nameof(store), store);
+        //    SetField.NotNull(out this._conversation, nameof(conversation), conversation);
+        //}
 
         public async Task ProcessReminders(CancellationToken token)
         {
@@ -48,22 +53,22 @@ namespace mStack.API.Bots.ExactOnline.HoursReminder
                     TokenCacheFactory.SetTokenCache(reminder.TokenCache);
                     var authToken = await ExactOnlineHelper.GetToken();
 
-                    ResumptionCookie cookie = reminder.GetResumptionCookie();
+                    ConversationReference conversation = reminder.GetConversationReference();
 
                     double? bookedHours = await GetBookedHours(authToken);
                     int contractHours = reminder.ContractHours ?? 40;     // TODO: need to get the contracted hours from somewhere
 
                     if (bookedHours == null)
                     {
-                        await SendReminder(cookie, "Hey! I tried to look at your hours but I was unable to. Could you be so kind to do it yourself? Thanks!", token);
+                        await SendReminder(conversation, "Hey! I tried to look at your hours but I was unable to. Could you be so kind to do it yourself? Thanks!", token);
                     }
                     else if (bookedHours == 0)
                     {
-                        await SendReminder(cookie, $"Hey! I noticed you didn't book any hours yet for this week. You can ask me to book your hours, or do so yourself in Exact.", token);
+                        await SendReminder(conversation, $"Hey! I noticed you didn't book any hours yet for this week. You can ask me to book your hours, or do so yourself in Exact.", token);
                     }
                     else if (bookedHours < contractHours)
                     {
-                        await SendReminder(cookie, $"Hey! I noticed you've booked {bookedHours} hours this week, I was expecting {contractHours}. Can you please book the rest?", token);
+                        await SendReminder(conversation, $"Hey! I noticed you've booked {bookedHours} hours this week, I was expecting {contractHours}. Can you please book the rest?", token);
                     }
                 } catch (Exception ex)
                 {
@@ -72,27 +77,27 @@ namespace mStack.API.Bots.ExactOnline.HoursReminder
             }
         }
 
-        private async Task SendReminder(ResumptionCookie cookie, string replyText, CancellationToken token)
+        private async Task SendReminder(ConversationReference conversation, string replyText, CancellationToken token)
         {
-            var connector = new ConnectorClient(new Uri(cookie.Address.ServiceUrl), new MicrosoftAppCredentials());
+            var connector = new ConnectorClient(new Uri(conversation.ServiceUrl), new MicrosoftAppCredentials());
 
-            var userAccount = new ChannelAccount(cookie.Address.UserId);
-            var botAccount = new ChannelAccount(cookie.Address.BotId);
+            var userAccount = new ChannelAccount(conversation.User.Id);
+            var botAccount = new ChannelAccount(conversation.Bot.Id);
 
-            Activity activity = cookie.GetMessage();
+            Activity activity = conversation.GetPostToUserMessage();
 
             // need to trust the service URL because otherwise the bot connector authentication will fail
-            MicrosoftAppCredentials.TrustServiceUrl(cookie.Address.ServiceUrl);
+            MicrosoftAppCredentials.TrustServiceUrl(conversation.ServiceUrl);
 
             // construct the reply to send back to the user
             IMessageActivity messageToSend = Activity.CreateMessageActivity();
-            messageToSend.ChannelId = cookie.Address.ChannelId;
+            messageToSend.ChannelId = conversation.ChannelId;
             messageToSend.From = botAccount;
             messageToSend.Recipient = userAccount;
-            messageToSend.Conversation = new ConversationAccount(id: cookie.Address.ConversationId);
+            messageToSend.Conversation = new ConversationAccount(id: conversation.Conversation.Id);
             messageToSend.Text = replyText;
             messageToSend.Locale = "en-Us";
-            messageToSend.ServiceUrl = cookie.Address.ServiceUrl;
+            messageToSend.ServiceUrl = conversation.ServiceUrl;
 
             await connector.Conversations.SendToConversationAsync((Activity)messageToSend);
         }
@@ -117,7 +122,7 @@ namespace mStack.API.Bots.ExactOnline.HoursReminder
             }
         }
 
-        public async Task SetReminder(IBotContext context, int contractHours)
+        public async Task SetReminder(IBotContext context, int contractHours, ConversationReference conversation)
         {
             string username = context.Activity.From.Name;
 
@@ -128,7 +133,7 @@ namespace mStack.API.Bots.ExactOnline.HoursReminder
             else
             {
                 TokenCache tokenCache = TokenCacheFactory.GetTokenCache();
-                HoursReminderModel model = new HoursReminderModel(username, _cookie, contractHours, tokenCache);
+                HoursReminderModel model = new HoursReminderModel(username, conversation, contractHours, tokenCache);
                 _store.AddReminder(model);
 
                 await context.PostAsync("Sure thing! I will remind you about booking your hours at the end of every week.");

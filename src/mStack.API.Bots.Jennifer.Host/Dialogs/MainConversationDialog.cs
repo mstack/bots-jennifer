@@ -40,8 +40,8 @@ namespace mStack.API.Bots.Jennifer
 
         public MainConversationDialog(IHoursReminderService hoursReminderService, IBotCache botCache, LuisService luisService) : base(luisService)
         {
-            _hoursReminderService = hoursReminderService;
-            _botCache = botCache;
+            SetField.NotNull(out this._hoursReminderService, nameof(_hoursReminderService), hoursReminderService);
+            SetField.NotNull(out this._botCache, nameof(_botCache), botCache);
         }
 
         [LuisIntent("Welcome")]
