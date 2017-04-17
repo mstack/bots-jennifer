@@ -8,6 +8,7 @@ using mStack.API.Common.Utilities;
 using mStack.API.REST.ExactOnlineConnect;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -42,25 +43,31 @@ namespace mStack.API.Bots.ExactOnline.HoursReminder
             // then send the user a message as a reminder
             foreach (HoursReminderModel reminder in reminders)
             {
-                TokenCacheFactory.SetTokenCache(reminder.TokenCache);
-                var authToken = await ExactOnlineHelper.GetToken();
-
-                ResumptionCookie cookie = reminder.GetResumptionCookie();
-
-                double? bookedHours = await GetBookedHours(authToken);
-                int contractHours = reminder.ContractHours ?? 40;     // TODO: need to get the contracted hours from somewhere
-
-                if (bookedHours == null)
+                try
                 {
-                    await SendReminder(cookie, "Hey! I tried to look at your hours but I was unable to. Could you be so kind to do it yourself? Thanks!", token);
-                }
-                else if (bookedHours == 0)
+                    TokenCacheFactory.SetTokenCache(reminder.TokenCache);
+                    var authToken = await ExactOnlineHelper.GetToken();
+
+                    ResumptionCookie cookie = reminder.GetResumptionCookie();
+
+                    double? bookedHours = await GetBookedHours(authToken);
+                    int contractHours = reminder.ContractHours ?? 40;     // TODO: need to get the contracted hours from somewhere
+
+                    if (bookedHours == null)
+                    {
+                        await SendReminder(cookie, "Hey! I tried to look at your hours but I was unable to. Could you be so kind to do it yourself? Thanks!", token);
+                    }
+                    else if (bookedHours == 0)
+                    {
+                        await SendReminder(cookie, $"Hey! I noticed you didn't book any hours yet for this week. You can ask me to book your hours, or do so yourself in Exact.", token);
+                    }
+                    else if (bookedHours < contractHours)
+                    {
+                        await SendReminder(cookie, $"Hey! I noticed you've booked {bookedHours} hours this week, I was expecting {contractHours}. Can you please book the rest?", token);
+                    }
+                } catch (Exception ex)
                 {
-                    await SendReminder(cookie, $"Hey! I noticed you didn't book any hours yet for this week. You can ask me to book your hours, or do so yourself in Exact.", token);
-                }
-                else if (bookedHours < contractHours)
-                {
-                    await SendReminder(cookie, $"Hey! I noticed you've booked {bookedHours} hours this week, I was expecting {contractHours}. Can you please book the rest?", token);
+                    Trace.TraceError($"Something went wrong processing the reminders: {ex}.");
                 }
             }
         }

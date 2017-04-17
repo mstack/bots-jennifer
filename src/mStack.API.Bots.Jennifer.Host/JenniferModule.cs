@@ -20,7 +20,7 @@ namespace mStack.API.Bots.Jennifer
             base.Load(builder);
 
             // Register the LUIS model
-            builder.Register(c => new LuisService(new LuisModelAttribute(WebConfigurationManager.AppSettings["LuisAppId"], WebConfigurationManager.AppSettings["LuisAPIKey"]))).AsSelf().AsImplementedInterfaces().SingleInstance();
+            builder.Register(c => new LuisService(new LuisModelAttribute(WebConfigurationManager.AppSettings["LuisAppId"], WebConfigurationManager.AppSettings["LuisAPIKey"], LuisApiVersion.V2))).AsSelf().AsImplementedInterfaces().SingleInstance();
 
             // register the top level dialog
             builder.RegisterType<MainConversationDialog>().As<IDialog<object>>().InstancePerDependency();

@@ -4,22 +4,13 @@ using System.Threading.Tasks;
 
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.FormFlow;
-using Microsoft.Bot.Builder.Luis;
-using Microsoft.Bot.Builder.Luis.Models;
-
-using mStack.API.Bots.AzureAD;
-
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Host.Bindings.Runtime;
-
-using Newtonsoft.Json;
 using Microsoft.Bot.Builder.FormFlow.Advanced;
-using mStack.API.REST.ExactOnlineConnect;
-using mStack.API.Bots.ExactOnline;
-using mStack.API.Common.Utilities;
-using Microsoft.Bot.Builder.Dialogs.Internals;
-using Autofac;
+
 using mStack.API.Bots.Cache;
+using mStack.API.Common.Utilities;
+using mStack.API.REST.ExactOnlineConnect;
+using mStack.API.REST.Exceptions;
+
 using ExactOnline.Client.Models;
 
 namespace mStack.API.Bots.ExactOnline.Dialogs
@@ -62,7 +53,7 @@ namespace mStack.API.Bots.ExactOnline.Dialogs
     public class TimeRegistrationDialog
     {
         private readonly string key_customers = "eol_recent_customers";
-        private readonly string key_projects = "eol_recent_projects";
+        //private readonly string key_projects = "eol_recent_projects";
         private readonly string key_hours = "eol_recent_hours";
         private readonly string key_hourTypes = "eol_recent_hourtypes";
 
@@ -97,8 +88,10 @@ namespace mStack.API.Bots.ExactOnline.Dialogs
 
         private static Task<ValidateResult> ValidateHoursPerDay(TimeRegistrationModel model, object state)
         {
-            ValidateResult result = new ValidateResult();
-            result.IsValid = true;
+            ValidateResult result = new ValidateResult()
+            {
+                IsValid = true
+            };
 
             // if the input is not a string, it's not valid in any case
             if (! (state is string))
@@ -114,8 +107,7 @@ namespace mStack.API.Bots.ExactOnline.Dialogs
             string[] hours = inputToValidate.Trim().Split(' ');
             if (!hours.All(h =>
             {
-                double parseResult;
-                if (double.TryParse(h, out parseResult))
+                if (double.TryParse(h, out double parseResult))
                     return true;
                 else
                     return false;
@@ -148,14 +140,15 @@ namespace mStack.API.Bots.ExactOnline.Dialogs
 
                 if (customerId != null)
                 {
-                    var recentProjects = _cacheService.RetrieveForUser<RecentHours[]>(key_hours, _userId);
+                    string key = key_hours + customerId.ToString();
+                    var recentProjects = _cacheService.RetrieveForUser<RecentHours[]>(key, _userId);
 
                     if (recentProjects == null)
                     {
                         TimeRegistrationConnector timeConnector = new TimeRegistrationConnector();
                         recentProjects = timeConnector.GetRecentProjects(connector, customerId).ToArray();
 
-                        _cacheService.CacheForUser(key_hours, recentProjects, _userId);
+                        _cacheService.CacheForUser(key, recentProjects, _userId);
                     }
 
                     foreach (var recentProject in recentProjects)
@@ -246,33 +239,50 @@ namespace mStack.API.Bots.ExactOnline.Dialogs
 
             TimeRegistrationConnector timeConnector = new TimeRegistrationConnector();
 
-            Guid? projectId = String.IsNullOrEmpty(model.Project) || model.Project == "none" ? (Guid?)null : new Guid(model.Project);
-            Guid? customerId = String.IsNullOrEmpty(model.Customer) ? (Guid?)null : new Guid(model.Customer);
-            Guid? hourTypeId = String.IsNullOrEmpty(model.HourType) ? (Guid?)null : new Guid(model.HourType);
+            Guid projectId = String.IsNullOrEmpty(model.Project) || model.Project == "none" ? Guid.Empty : new Guid(model.Project);
+            Guid customerId = String.IsNullOrEmpty(model.Customer) ? Guid.Empty : new Guid(model.Customer);
+            Guid hourTypeId = String.IsNullOrEmpty(model.HourType) ? Guid.Empty : new Guid(model.HourType);
 
-            // the user will have booked time for either this week or for a specific date 
-            if (!model.ThisWeek)
+            try
             {
-                timeConnector.BookHours(connector.EmployeeId, customerId, hourTypeId, projectId, model.Date, model.Amount, connector);
-            }
-            else
-            {
-                // if the hours were booked for the entire will, there will be 5 numbers in the string that need to be split 
-                // out and entered for each day of the week individually
-                int dayOfWeek = DateTimeUtils.GetISODayOfWeek(DateTime.Now);
-                DateTime currentDay = DateTime.Now.AddDays((dayOfWeek - 1) * -1);
-
-                string[] hours = model.AmountPerDay.Trim().Split(' ');
-
-                for (int i = 0; i<5; i++)
+                // the user will have booked time for either this week or for a specific date 
+                if (!model.ThisWeek)
                 {
-                    double amount = Double.Parse(hours[i]);
-                    timeConnector.BookHours(connector.EmployeeId, customerId, hourTypeId, projectId, currentDay, amount, connector);
-                    currentDay = currentDay.AddDays(1);
+                    timeConnector.BookHours(connector.EmployeeId, customerId, hourTypeId, projectId, model.Date, model.Amount, connector);
+                }
+                else
+                {
+                    // if the hours were booked for the entire will, there will be 5 numbers in the string that need to be split 
+                    // out and entered for each day of the week individually
+                    int dayOfWeek = DateTimeUtils.GetISODayOfWeek(DateTime.Now);
+                    DateTime currentDay = DateTime.Now.AddDays((dayOfWeek - 1) * -1);
+
+                    string[] hours = model.AmountPerDay.Trim().Split(' ');
+
+                    for (int i = 0; i < 5; i++)
+                    {
+                        double amount = Double.Parse(hours[i]);
+
+                        if (amount > 0)
+                        {
+                            timeConnector.BookHours(connector.EmployeeId, customerId, hourTypeId, projectId, currentDay, amount, connector);
+                        }
+
+                        currentDay = currentDay.AddDays(1);
+                    }
                 }
             }
+            catch (RequestFailedException ex)
+            {
+                await context.PostAsync($"Hmm, that didn't work. The request failed, it returned the following:");
+                await context.PostAsync($"\"{ ex.Message}\"");
+                await context.PostAsync($"Sorry about that. Please try again or notify my maker.");
 
+                return null;
+            }
+
+            await context.PostAsync("All set! Anything else I can do for you?");
             return model;
-         }
+        }
     }
 }

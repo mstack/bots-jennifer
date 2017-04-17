@@ -26,6 +26,7 @@ using mStack.API.Bots.Auth;
 using mStack.API.Bots.ExactOnline.HoursReminder;
 using System.Text.RegularExpressions;
 using mStack.API.Bots.Cache;
+using mStack.API.Bots.Dialogs;
 
 namespace mStack.API.Bots.Jennifer
 {
@@ -37,7 +38,7 @@ namespace mStack.API.Bots.Jennifer
         private readonly IHoursReminderService _hoursReminderService;
         private readonly IBotCache _botCache;
 
-        public MainConversationDialog(IHoursReminderService hoursReminderService, IBotCache botCache) : base(new LuisService(new LuisModelAttribute(WebConfigurationManager.AppSettings["LuisAppId"], WebConfigurationManager.AppSettings["LuisAPIKey"])))
+        public MainConversationDialog(IHoursReminderService hoursReminderService, IBotCache botCache, LuisService luisService) : base(luisService)
         {
             _hoursReminderService = hoursReminderService;
             _botCache = botCache;
@@ -200,11 +201,53 @@ namespace mStack.API.Bots.Jennifer
             }
         }
 
+        [LuisIntent("SubmitHours")]
+        public async Task SubmitHours(IDialogContext context, IAwaitable<IMessageActivity> activity, LuisResult result)
+        {
+            if (await VerifyExactOnlineAuthorization(context, activity, ""))
+            {
+                await context.PostAsync($"Let me check whether you're all set...");
+
+                ExactOnlineConnector eolConnector = ExactOnlineHelper.GetConnector();
+                TimeRegistrationConnector connector = new TimeRegistrationConnector();
+
+                DateTime startDate, endDate;
+                DateTimeUtils.GetThisWeek(DateTime.Now, out startDate, out endDate);
+
+                double bookedHours = await connector.GetBookedHours(eolConnector.EmployeeId, startDate, endDate, eolConnector);
+
+                ConfirmDialog.Text = $"You've registered a total number of {0} hours for this week. Do you want me to submit those?";
+                var confirmationDialog = new FormDialog<ConfirmModel>(new ConfirmModel(), ConfirmDialog.BuildForm, FormOptions.PromptInStart);
+                context.Call(confirmationDialog, this.ResumeAfterSubmitHoursDialog);
+            }
+        }
+
+        private async Task ResumeAfterSubmitHoursDialog(IDialogContext context, IAwaitable<ConfirmModel> result)
+        {
+            ConfirmModel message = await result;
+
+            if (message.Confirmation)
+            {
+                DateTime startDate, endDate;
+                DateTimeUtils.GetThisWeek(DateTime.Now, out startDate, out endDate);
+
+                ExactOnlineConnector eolConnector = ExactOnlineHelper.GetConnector();
+                TimeRegistrationConnector timeConnector = new TimeRegistrationConnector();
+                timeConnector.SubmitHours(eolConnector.EmployeeId, startDate, endDate, eolConnector);
+
+                await context.PostAsync($"Thanks, I've closed your timesheet for this week. Have a nice weekend!");
+            }
+            else
+            {
+                await context.PostAsync($"Ok. Just give me a nudge when you're ready.");
+            }
+
+            context.Wait(MessageReceived);
+        }
+
         private async Task ResumeAfterTimeRegistration(IDialogContext context, IAwaitable<TimeRegistrationModel> result)
         {
             TimeRegistrationModel message = await result;
-
-            await context.PostAsync("All set! Anything else I can do for you?");
             context.Wait(MessageReceived);
         }
 
