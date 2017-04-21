@@ -13,6 +13,7 @@ using Microsoft.Bot.Connector;
 
 using mStack.API.Bots.AzureAD;
 using mStack.API.Bots.ExactOnline;
+using mStack.API.Bots.Utilities;
 
 using Newtonsoft.Json;
 using System.Collections.Generic;
@@ -167,12 +168,8 @@ namespace mStack.API.Bots.Jennifer
                     Microsoft.Bot.Builder.Luis.BuiltIn.DateTime.DateTimeResolution actual;
                     if (Microsoft.Bot.Builder.Luis.BuiltIn.DateTime.DateTimeResolution.TryParse(resolution["date"], out actual))
                     {
-                        // when entering "feb 1st", the parser will return -1 for the year... we will assume: this year
-                        int year = actual.Year.Value != -1 ? actual.Year.Value : DateTime.Now.Year;
-                        int month = actual.Month.Value != -1 ? actual.Month.Value : DateTime.Now.Month;
-                        int day = actual.Day.Value != -1 ? actual.Day.Value : DateTime.Now.Day;
+                        DateTime startTime = actual.ConvertResolutionToDateTime();
 
-                        DateTime startTime = new DateTime(year, month, day);
                         entities.Add(new EntityRecommendation(type: nameof(TimeRegistrationModel.Date)) { Entity = startTime.ToString() });
                         entities.Add(new EntityRecommendation(type: nameof(TimeRegistrationModel.ThisWeek)) { Entity = "no" });
                     }

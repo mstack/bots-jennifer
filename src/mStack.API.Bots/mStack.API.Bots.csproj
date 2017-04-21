@@ -206,6 +206,7 @@
     <Compile Include="AzureAD\TokenCacheFactory.cs" />
     <Compile Include="SharePoint\Dialogs\LeaveRequestDialog.cs" />
     <Compile Include="SharePoint\Dialogs\SickLeaveDialog.cs" />
+    <Compile Include="Utilities\BotExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config">
