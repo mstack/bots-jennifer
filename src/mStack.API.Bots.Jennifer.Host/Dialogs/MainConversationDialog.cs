@@ -166,7 +166,7 @@ namespace mStack.API.Bots.Jennifer
                 {
                     var resolution = dates.First().Resolution;
                     Microsoft.Bot.Builder.Luis.BuiltIn.DateTime.DateTimeResolution actual;
-                    if (Microsoft.Bot.Builder.Luis.BuiltIn.DateTime.DateTimeResolution.TryParse(resolution["date"], out actual))
+                    if (Microsoft.Bot.Builder.Luis.BuiltIn.DateTime.DateTimeResolution.TryParse((string)resolution["date"], out actual))
                     {
                         DateTime startTime = actual.ConvertResolutionToDateTime();
 
@@ -179,7 +179,7 @@ namespace mStack.API.Bots.Jennifer
                 if (numberEntities.Count() == 1)
                 {
                     var resolution = numberEntities.First().Resolution;
-                    string durationString = resolution["duration"];
+                    string durationString = (string)resolution["duration"];
 
                     Match regexMatch = Regex.Match(durationString, "PT(\\d)H");
                     if (regexMatch.Success)
@@ -265,7 +265,7 @@ namespace mStack.API.Bots.Jennifer
                 {
                     var resolution = dates.First().Resolution;
                     Microsoft.Bot.Builder.Luis.BuiltIn.DateTime.DateTimeResolution actual;
-                    if (Microsoft.Bot.Builder.Luis.BuiltIn.DateTime.DateTimeResolution.TryParse(resolution["date"], out actual))
+                    if (Microsoft.Bot.Builder.Luis.BuiltIn.DateTime.DateTimeResolution.TryParse((string)resolution["date"], out actual))
                     {
                         // when entering "feb 1st", the parser will return -1 for the year... we will assume: this year
                         int year = actual.Year.Value != -1 ? actual.Year.Value : DateTime.Now.Year;
@@ -281,7 +281,7 @@ namespace mStack.API.Bots.Jennifer
                 {
                     var resolution = dates.Skip(1).First().Resolution;
                     Microsoft.Bot.Builder.Luis.BuiltIn.DateTime.DateTimeResolution actual;
-                    if (Microsoft.Bot.Builder.Luis.BuiltIn.DateTime.DateTimeResolution.TryParse(resolution["date"], out actual))
+                    if (Microsoft.Bot.Builder.Luis.BuiltIn.DateTime.DateTimeResolution.TryParse((string)resolution["date"], out actual))
                     {
                         // when entering "feb 1st", the parser will return -1 for the year... we will assume: this year
                         int year = actual.Year.Value != -1 ? actual.Year.Value : DateTime.Now.Year;
