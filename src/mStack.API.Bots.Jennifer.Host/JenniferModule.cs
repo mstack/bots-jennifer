@@ -3,13 +3,9 @@ using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.Dialogs.Internals;
 using Microsoft.Bot.Builder.Internals.Fibers;
 using Microsoft.Bot.Builder.Luis;
-using Microsoft.Bot.Connector;
 using mStack.API.Bots.Cache;
 using mStack.API.Bots.ExactOnline.HoursReminder;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+using mStack.API.Bots.Jennifer.Dialogs;
 using System.Web.Configuration;
 
 namespace mStack.API.Bots.Jennifer

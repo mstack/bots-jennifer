@@ -122,6 +122,8 @@
     <Compile Include="Controllers\OAuthController.cs" />
     <Compile Include="Controllers\ReminderController.cs" />
     <Compile Include="Dialogs\MainConversationDialog.cs" />
+    <Compile Include="Dialogs\MainConversationDialog.Hours.cs" />
+    <Compile Include="Dialogs\MainConversationDialog.Leave.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
