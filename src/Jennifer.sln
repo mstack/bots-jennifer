@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26020.0
+VisualStudioVersion = 15.0.26510.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "README", "README", "{279E48A0-6E78-4007-96B3-B018169997BE}"
 	ProjectSection(SolutionItems) = preProject
@@ -15,6 +15,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mStack.API.Common", "..\..\company-apis\src\mStack.API.Common\mStack.API.Common.csproj", "{B69E89F2-A3E4-4A0F-9509-AFDC26790A5C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mStack.API.REST", "..\..\company-apis\src\mStack.API.REST\mStack.API.REST.csproj", "{EC1C30A9-7EE3-4466-BCF6-105CB9B84E1E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mStack.API.Bots.UnitTests", "mStack.API.Bots.UnitTests\mStack.API.Bots.UnitTests.csproj", "{5F0A3906-305A-4095-B25F-F35A91F207FE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -38,6 +40,10 @@ Global
 		{EC1C30A9-7EE3-4466-BCF6-105CB9B84E1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EC1C30A9-7EE3-4466-BCF6-105CB9B84E1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EC1C30A9-7EE3-4466-BCF6-105CB9B84E1E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F0A3906-305A-4095-B25F-F35A91F207FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F0A3906-305A-4095-B25F-F35A91F207FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F0A3906-305A-4095-B25F-F35A91F207FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F0A3906-305A-4095-B25F-F35A91F207FE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
