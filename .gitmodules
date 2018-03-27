@@ -1,0 +1,3 @@
+[submodule "submodules/company-apis"]
+	path = submodules/company-apis
+	url = https://mstack.visualstudio.com/_git/company-apis

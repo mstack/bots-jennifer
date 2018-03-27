@@ -12,9 +12,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mStack.API.Bots", "mStack.A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mStack.API.Bots.Jennifer.Host", "mStack.API.Bots.Jennifer.Host\mStack.API.Bots.Jennifer.Host.csproj", "{A8BA1066-5695-4D71-ABB4-65E5A5E0C3D4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mStack.API.Common", "..\..\company-apis\src\mStack.API.Common\mStack.API.Common.csproj", "{B69E89F2-A3E4-4A0F-9509-AFDC26790A5C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mStack.API.Common", "..\submodules\company-apis\src\mStack.API.Common\mStack.API.Common.csproj", "{B69E89F2-A3E4-4A0F-9509-AFDC26790A5C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mStack.API.REST", "..\..\company-apis\src\mStack.API.REST\mStack.API.REST.csproj", "{EC1C30A9-7EE3-4466-BCF6-105CB9B84E1E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mStack.API.REST", "..\submodules\company-apis\src\mStack.API.REST\mStack.API.REST.csproj", "{EC1C30A9-7EE3-4466-BCF6-105CB9B84E1E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mStack.API.Bots.UnitTests", "mStack.API.Bots.UnitTests\mStack.API.Bots.UnitTests.csproj", "{5F0A3906-305A-4095-B25F-F35A91F207FE}"
 EndProject
