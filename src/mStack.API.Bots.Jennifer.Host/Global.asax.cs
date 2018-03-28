@@ -10,6 +10,7 @@
     using mStack.API.Bots;
     using mStack.API.Bots.ExactOnline.HoursReminder;
     using mStack.API.Bots.Jennifer;
+    using System;
     using System.Reflection;
     using System.Web.Configuration;
     using System.Web.Http;
@@ -18,14 +19,29 @@
     {
         protected void Application_Start()
         {
-            GlobalConfiguration.Configure(WebApiConfig.Register);
             RegisterBotDependencies();
+
+            Conversation.UpdateContainer(
+                builder =>
+                {
+                    builder.RegisterModule(new AzureModule(Assembly.GetExecutingAssembly()));
+
+                    // Bot Storage: register state storage for your bot
+                    var store = new InMemoryDataStore();
+                    builder.Register(c => store)
+                        .Keyed<IBotDataStore<BotData>>(AzureModule.Key_DataStore)
+                        .AsSelf()
+                        .SingleInstance();
+                }
+            );
+
+            GlobalConfiguration.Configure(WebApiConfig.Register);
         }
 
         private void RegisterBotDependencies()
         {
             var builder = new ContainerBuilder();
-            
+
             // register the required modules
             builder.RegisterModule(new DialogModule());
             builder.RegisterModule(new JenniferModule());
@@ -41,13 +57,6 @@
 
             // OPTIONAL: Register the Autofac filter provider.
             builder.RegisterWebApiFilterProvider(config);
-
-            // TODO: Bot State service, default to in memory for now. Should be moved to Table Storage
-            var store = new InMemoryDataStore();
-            builder.Register(c => store)
-                          .Keyed<IBotDataStore<BotData>>(AzureModule.Key_DataStore)
-                          .AsSelf()
-                          .SingleInstance();
 
             // Set the dependency resolver to be Autofac.
             var container = builder.Build();
