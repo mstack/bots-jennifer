@@ -2,6 +2,7 @@
 {
     using Autofac;
     using Autofac.Integration.WebApi;
+    using Microsoft.Bot.Builder.Azure;
     using Microsoft.Bot.Builder.Dialogs;
     using Microsoft.Bot.Builder.Dialogs.Internals;
     using Microsoft.Bot.Builder.Luis;
@@ -40,6 +41,13 @@
 
             // OPTIONAL: Register the Autofac filter provider.
             builder.RegisterWebApiFilterProvider(config);
+
+            // TODO: Bot State service, default to in memory for now. Should be moved to Table Storage
+            var store = new InMemoryDataStore();
+            builder.Register(c => store)
+                          .Keyed<IBotDataStore<BotData>>(AzureModule.Key_DataStore)
+                          .AsSelf()
+                          .SingleInstance();
 
             // Set the dependency resolver to be Autofac.
             var container = builder.Build();
